@@ -1,0 +1,3 @@
+[submodule "hw3/Upside_Practice_QuizGame/lib/forge-std"]
+	path = hw3/Upside_Practice_QuizGame/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
