@@ -2,6 +2,8 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
+
 import "../src/Quiz.sol";
 
 contract QuizTest is Test {
@@ -11,10 +13,11 @@ contract QuizTest is Test {
     Quiz.Quiz_item q1;
 
     function setUp() public {
-       vm.deal(address(this), 100 ether);
-       quiz = new Quiz();
-       address(quiz).call{value: 5 ether}("");
-       q1 = quiz.getQuiz(1);
+        vm.deal(address(this), 100 ether);
+        quiz = new Quiz();
+        address(quiz).call{value: 5 ether}("");
+
+        q1 = quiz.getQuiz(1);
     }
 
     function testAddQuizACL() public {
@@ -46,7 +49,7 @@ contract QuizTest is Test {
         quiz.addQuiz(q);
         Quiz.Quiz_item memory q2 = quiz.getQuiz(q.id);
         q.answer = "";
-        assertEq(abi.encode(q), abi.encode(q2));
+        assertEq(abi.encode(q), abi.encode(q2)); //이게 어떻게 같을 수 있지?
     }
 
     function testBetToPlayMin() public {
@@ -94,7 +97,7 @@ contract QuizTest is Test {
         quiz.betToPlay{value: q1.min_bet}(1);
         quiz.solveQuiz(1, quiz.getAnswer(1));
         uint256 prev_balance = address(this).balance;
-        quiz.claim();
+        quiz.claim(1);
         uint256 balance = address(this).balance;
         assertEq(balance - prev_balance, q1.min_bet * 2);
     }
