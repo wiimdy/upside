@@ -13,7 +13,7 @@ contract Quiz {
     }
 
     mapping(address => uint256)[] public bets;
-    uint public vault_balance; // 배팅으로 진 돈을 보관...?
+    uint public vault_balance; //
 
     mapping(uint => Quiz_item) public Quiz_list; //id 와 quiz_item을 연결하는 맵핑 생성
     address owner; // quiz 추가를 owner 만 가능  acl을 위해 추가
@@ -91,8 +91,8 @@ contract Quiz {
     // 돈을 땃으니 건 돈의 두배를 준다.
     function claim(uint quizId) public {
         uint awards = bets[quizId - 1][msg.sender] * 2;
-        payable(msg.sender).call{value: awards}("");
-        bets[quizId - 1][msg.sender] = 0;
+        (bool check, ) = payable(msg.sender).call{value: awards}("");
+        if (check) bets[quizId - 1][msg.sender] = 0;
     }
 
     receive() external payable {} // 돈을 받기 위해 생성

@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
+import {console, Test} from "forge-std/Test.sol";
 import "../src/Lottery.sol";
 
 contract LotteryTest is Test {
     Lottery public lottery;
     uint256 received_msg_value;
     function setUp() public {
-       lottery = new Lottery();
-       received_msg_value = 0;
-       vm.deal(address(this), 100 ether);
-       vm.deal(address(1), 100 ether);
-       vm.deal(address(2), 100 ether);
-       vm.deal(address(3), 100 ether);
+        lottery = new Lottery();
+        received_msg_value = 0;
+        vm.deal(address(this), 100 ether);
+        vm.deal(address(1), 100 ether);
+        vm.deal(address(2), 100 ether);
+        vm.deal(address(3), 100 ether);
     }
 
     function testGoodBuy() public {
@@ -88,16 +88,18 @@ contract LotteryTest is Test {
 
     function testClaimOnWin() public {
         uint16 winningNumber = getNextWinningNumber();
-        lottery.buy{value: 0.1 ether}(winningNumber); vm.warp(block.timestamp + 24 hours);
+        lottery.buy{value: 0.1 ether}(winningNumber);
+        vm.warp(block.timestamp + 24 hours);
         uint256 expectedPayout = address(lottery).balance;
         lottery.draw();
         lottery.claim();
-        assertEq(received_msg_value, expectedPayout);
+        assertEq(received_msg_value, expectedPayout); // 예상 지급
     }
 
     function testNoClaimOnLose() public {
         uint16 winningNumber = getNextWinningNumber();
-        lottery.buy{value: 0.1 ether}(winningNumber + 1); vm.warp(block.timestamp + 24 hours);
+        lottery.buy{value: 0.1 ether}(winningNumber + 1);
+        vm.warp(block.timestamp + 24 hours);
         lottery.draw();
         lottery.claim();
         assertEq(received_msg_value, 0);
@@ -105,27 +107,32 @@ contract LotteryTest is Test {
 
     function testNoDrawDuringClaimPhase() public {
         uint16 winningNumber = getNextWinningNumber();
-        lottery.buy{value: 0.1 ether}(winningNumber); vm.warp(block.timestamp + 24 hours);
+        lottery.buy{value: 0.1 ether}(winningNumber);
+        vm.warp(block.timestamp + 24 hours);
         lottery.draw();
         lottery.claim();
         vm.expectRevert();
-        lottery.draw();
+        lottery.draw(); //이미 뽑으면 또 안됨
     }
 
     function testRollover() public {
+        // 이게 다음 라운드로 넘긴다는데 잘 이해가 안됨
         uint16 winningNumber = getNextWinningNumber();
-        lottery.buy{value: 0.1 ether}(winningNumber + 1); vm.warp(block.timestamp + 24 hours);
+        lottery.buy{value: 0.1 ether}(winningNumber + 1);
+        vm.warp(block.timestamp + 24 hours);
         lottery.draw();
         lottery.claim();
 
         winningNumber = getNextWinningNumber();
-        lottery.buy{value: 0.1 ether}(winningNumber); vm.warp(block.timestamp + 24 hours);
+        lottery.buy{value: 0.1 ether}(winningNumber);
+        vm.warp(block.timestamp + 24 hours);
         lottery.draw();
         lottery.claim();
         assertEq(received_msg_value, 0.2 ether);
     }
 
     function testSplit() public {
+        // 각 주소에 따라 따로 받아야 한다.
         uint16 winningNumber = getNextWinningNumber();
         lottery.buy{value: 0.1 ether}(winningNumber);
         vm.prank(address(1));
