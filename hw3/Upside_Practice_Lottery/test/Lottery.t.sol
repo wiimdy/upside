@@ -116,7 +116,7 @@ contract LotteryTest is Test {
     }
 
     function testRollover() public {
-        // 이게 다음 라운드로 넘긴다는데 잘 이해가 안됨
+        // 이게 다음 라운드로 넘긴다는데 잘 이해가 안됨 일단 못 맞추면 넘어가는 그런 원리인듯?
         uint16 winningNumber = getNextWinningNumber();
         lottery.buy{value: 0.1 ether}(winningNumber + 1);
         vm.warp(block.timestamp + 24 hours);
