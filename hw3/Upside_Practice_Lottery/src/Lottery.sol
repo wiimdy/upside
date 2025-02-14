@@ -34,6 +34,10 @@ contract Lottery {
         lotte_time = block.timestamp;
         _status = Phase.BUY;
         winner = 0;
+        for (uint256 i = 0; i < participants.length; i++) {
+            address participant_ = participants[i];
+            delete lotte_list[participant_];
+        }
         delete participants;
     }
 
@@ -76,14 +80,13 @@ contract Lottery {
             _amount = total_awards / winner;
         }
 
-        delete lotte_list[msg.sender];
         if (_amount != 0) {
             (bool check, ) = payable(msg.sender).call{value: _amount}("");
         }
     }
 
     /// @notice 로또 당첨 번호를 만드는 함수
-    /// @dev 완벽한 난수 생성은 사실 uint16이어서 안전하지 않다고 생각한다. 따라서 keccack으로 block 데이터를 이용해 만들었다.
+    /// @dev 완벽한 난수 생성은 사실 uint16이어서 안전하지 않다고 생각한다.
     /// @return 당첨 번호는 uint16으로 고정되어 있다. (getNextWinningNumber)
     function winningNumber() public view returns (uint16) {
         uint256 rando = uint256(
