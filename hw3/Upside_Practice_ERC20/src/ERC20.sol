@@ -7,6 +7,12 @@ contract ERC20 {
     mapping(address => uint256) private _balances; // 각 계정에 잔고 매핑
     mapping(address => mapping(address => uint256)) private _allowances; // 이중 매핑으로 allowance
 
+    bytes32 public DOMAIN_SEPARATOR;
+    bytes32 public constant EIP712DOMAIN_TYPEHASH =
+        keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
+
     bool private _pause; // contract가 stop 상태인지 나타내는 변수
     string private _name;
     string private _symbol;
@@ -20,6 +26,7 @@ contract ERC20 {
         _totalSupply = 200 ether; // 초기 발행량 200 ether로 설정
         _balances[_getOwner()] = _totalSupply;
         _pause = false;
+        makeDomainhash("main", "20");
     }
 
     /// @notice contract 소유자만 함수 실행 하게 만든 modifier
@@ -41,9 +48,29 @@ contract ERC20 {
 
     /// @notice struct hash를 Eip191, 712에 따라 prefix로 \x19\x01를 넣고 struct를 해시한다.
     /// @param hash 실행 시킬 함수를 인코딩하여 struct hash 값을 해시 함수 통해 내보낸다
-    function _toTypedDataHash(bytes32 hash) public pure returns (bytes32) {
-        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", hash));
+    function _toTypedDataHash(bytes32 hash) public view returns (bytes32) {
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, hash)
+        );
         return (digest);
+    }
+
+    function makeDomainhash(string memory name, string memory version) private {
+        //hashStruct(s) = keccak256(typeHash ‖ encodeData(s))
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                //typeHash(eip712Domain)
+                EIP712DOMAIN_TYPEHASH,
+                //name
+                keccak256(bytes(name)),
+                //version
+                keccak256(bytes(version)),
+                //chaindid
+                block.chainid,
+                //verifyingContract
+                address(this)
+            )
+        );
     }
 
     /// @notice 기존의 approve, transferfrom의 문제를 해결하기 위해 한번의 transaction으로 진행한다.
@@ -98,8 +125,8 @@ contract ERC20 {
         address spender = msg.sender;
         uint256 fromAllowance = _allowances[from][spender];
         require(amount <= fromAllowance, "Not encough allowance");
-        _allowances[from][spender] -= amount;
         _tranfser(from, to, amount);
+        _allowances[from][spender] -= amount;
     }
 
     function _tranfser(

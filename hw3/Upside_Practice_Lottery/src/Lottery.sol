@@ -26,7 +26,8 @@ contract Lottery {
     address[] private participants; // 참가한 사람의 주소
 
     constructor() {
-        setting();
+        lotte_time = block.timestamp;
+        _status = Phase.BUY;
     }
 
     /// @notice 로또를 만들었을 때 필요한 인자 세팅
@@ -42,14 +43,14 @@ contract Lottery {
     }
 
     /// @notice 사용자가 돈을 보내서 원하는 숫자의 로또를 산다. 각자 하나만 살수 있고 24시간 후에 draw
-    /// @param _num 로또 건 숫자
-    function buy(uint _num) public payable {
+    /// @param num_ 로또 건 숫자
+    function buy(uint num_) public payable {
         if (_status == Phase.CLAIM) setting();
         require(block.timestamp < lotte_time + 24 hours, "Not enough time"); // 시간이 지나기 전에 사야한다
         require(lotte_list[msg.sender].amount == 0, "Only buy one"); // 두번 로또는 안된다
         require(msg.value == 0.1 ether, "Only buy 0.1 ether"); // 0.1 ether로만 로또를 살 수 있다.
 
-        lotte_list[msg.sender].num = _num;
+        lotte_list[msg.sender].num = num_;
         lotte_list[msg.sender].amount = msg.value;
         participants.push(msg.sender);
         total_awards += msg.value;
